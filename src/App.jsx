@@ -150,8 +150,8 @@ function App() {
       <header className="flex justify-between items-center p-4 bg-cyan-800 border-b-4 w-full">
         <h1 className="text-2xl font-semibold">Chatbot</h1>
         <div className="flex space-x-4">
-          <button className="px-4 py-2 bg-blue-500 rounded-lg">Login</button>
-          <button className="px-4 py-2 bg-blue-500 rounded-lg">Signup</button>
+          {/* <button className="px-4 py-2 bg-blue-500 rounded-lg"></button>
+          <button className="px-4 py-2 bg-blue-500 rounded-lg">Signup</button> */}
         </div>
       </header>
 
