@@ -131,7 +131,7 @@ function App() {
       <div className="flex-1 w-full max-w-3xl p-4 overflow-y-auto">
         {messages.map((msg, index) => (
           splitMessages(msg.text).map((part, idx) => (
-            <div key={`${index}-${idx}`} className={`flex justify-${msg.type === 'user' ? 'end' : 'start'} mb-2`}>
+            <div key={`${index}-${idx}`} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} mb-2`}>
               <div className={`p-3 rounded-xl max-w-[80%] ${msg.type === 'user' ? 'bg-blue-600' : 'bg-gray-700'} hover:scale-105 transition-transform duration-300`}>
                 {part.type === 'text' ? (
                   <>
@@ -169,7 +169,7 @@ function App() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyPress}
             className="flex-1 p-3 rounded-lg bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
             placeholder="Type your message..."
             disabled={isProcessing}
@@ -178,7 +178,7 @@ function App() {
             onClick={isProcessing ? stopResponse : getResponse}
             className={`p-3 rounded-lg ${isProcessing ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}
           >
-            {isProcessing ? <FaRegStopCircle /> : <FaArrowUp />}
+            {isProcessing ? <FaRegStopCircle size={20} /> : <FaArrowUp size={20} />}
           </button>
           <button onClick={handleReason} className="p-3 bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg">Reason</button>
           <button onClick={handleSearch} className="p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg">
