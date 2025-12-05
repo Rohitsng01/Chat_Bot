@@ -4,7 +4,8 @@ import { FaArrowUp, FaRegStopCircle, FaRegCopy } from "react-icons/fa";
 import { TbWorld } from "react-icons/tb";
 import { HiMicrophone } from "react-icons/hi";
 import { IoMdVolumeHigh } from "react-icons/io";
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
+import ReactMarkdown from 'react-markdown';
 import './App.css';
 
 function App() {
@@ -15,8 +16,8 @@ function App() {
   const messagesEndRef = useRef(null);
   const controllerRef = useRef(new AbortController());
   const [isSpeaking, setIsSpeaking] = useState(null);
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,9 +49,20 @@ function App() {
       controllerRef.current = new AbortController();
       const res = await axios.post(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-        { contents: [{ parts: [{ text: input }] }] },
+        {
+          contents: [
+            {
+              parts: [
+                {
+                  text: `Please respond in clean Markdown format (headings, lists, paragraphs, code blocks). ${input}`,
+                },
+              ],
+            },
+          ],
+        },
         { signal: controllerRef.current.signal }
       );
+
       const responseText = res.data.candidates[0].content.parts[0].text;
       setMessages(prev => [...prev, { text: responseText, type: 'bot' }]);
     } catch (err) {
@@ -77,7 +89,7 @@ function App() {
   const handleReason = () => {
     const reasons = ["Why is the sky blue?", "Explain quantum physics.", "How does AI work?"];
     setMessages(prev => [...prev, {
-      text: `Here are some common reasons you can ask: ${reasons.join(", ")}`,
+      text: `Here are some common reasons you can ask:\n\n- ${reasons.join("\n- ")}`,
       type: 'bot'
     }]);
   };
@@ -95,98 +107,168 @@ function App() {
     recognition.onerror = () => toast.error("Sorry, I couldn't understand your voice input.");
   };
 
-  const splitMessages = (text) => {
-    const parts = [];
-    const regex = /(```[\s\S]+?```)/g;
-    let lastIndex = 0;
-    const matches = text.match(regex);
-
-    if (matches) {
-      matches.forEach(match => {
-        const index = text.indexOf(match, lastIndex);
-        if (index > lastIndex) {
-          parts.push({ type: 'text', content: text.slice(lastIndex, index) });
-        }
-        parts.push({ type: 'code', content: match });
-        lastIndex = index + match.length;
-      });
-    }
-
-    if (lastIndex < text.length) {
-      parts.push({ type: 'text', content: text.slice(lastIndex) });
-    }
-    return parts;
-  };
-
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') getResponse();
   };
 
   return (
-    <div className="flex flex-col items-center h-screen bg-gradient-to-br from-gray-900 to-black text-white">
-      <header className="flex justify-between items-center p-4 bg-cyan-800 w-full shadow-md">
-        <h1 className="text-2xl font-bold">🤖 Chatbot</h1>
+    <div className="app-container flex flex-col h-screen text-white">
+      <Toaster position="top-center" toastOptions={{
+        style: {
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: '#fff',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+        },
+      }} />
+      
+      <header className="glass-header flex justify-between items-center p-5 w-full flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+            <span className="text-2xl">🤖</span>
+          </div>
+          <h1 className="text-3xl font-bold logo-gradient">AI Chatbot</h1>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <span className="px-3 py-1 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 text-white font-semibold shadow-lg">
+            ● Online
+          </span>
+        </div>
       </header>
 
-      <div className="flex-1 w-full max-w-3xl p-4 overflow-y-auto">
-        {messages.map((msg, index) => (
-          splitMessages(msg.text).map((part, idx) => (
-            <div key={`${index}-${idx}`} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} mb-2`}>
-              <div className={`p-3 rounded-xl max-w-[80%] ${msg.type === 'user' ? 'bg-blue-600' : 'bg-gray-700'} hover:scale-105 transition-transform duration-300`}>
-                {part.type === 'text' ? (
-                  <>
-                    {msg.type === 'bot' && (
-                      <button onClick={() => speakText(msg.text, index)} className="float-right ml-2 hover:text-yellow-400">
-                        <IoMdVolumeHigh size={20} />
-                      </button>
-                    )}
-                    {part.content}
-                  </>
-                ) : (
-                  <div className="relative bg-cyan-800 p-3 rounded-lg text-sm">
-                    <button onClick={() => {
-                      navigator.clipboard.writeText(part.content);
-                      toast.success('Copied to clipboard!');
-                    }} className="absolute top-1 right-1 p-1 hover:bg-cyan-700 rounded">
-                      <FaRegCopy />
-                    </button>
-                    <pre className="whitespace-pre-wrap">{part.content.replace(/```/g, '')}</pre>
-                  </div>
-                )}
+      <div className="flex-1 w-full overflow-y-auto flex justify-center" style={{ position: 'relative', zIndex: 10 }}>
+        <div className="w-full max-w-4xl p-6">
+        {messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full text-center px-4">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-6 shadow-2xl animate-pulse">
+              <span className="text-5xl">💬</span>
+            </div>
+            <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Welcome to AI Chatbot
+            </h2>
+            <p className="text-gray-300 text-lg mb-6 max-w-md">
+              Ask me anything! I'm here to help with questions, code, explanations, and more.
+            </p>
+            <div className="flex gap-3 flex-wrap justify-center">
+              <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm hover:bg-white/10 transition-all cursor-pointer">
+                💡 Get creative ideas
+              </div>
+              <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm hover:bg-white/10 transition-all cursor-pointer">
+                🔍 Research topics
+              </div>
+              <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm hover:bg-white/10 transition-all cursor-pointer">
+                💻 Write code
               </div>
             </div>
-          ))
+          </div>
+        )}
+
+        {messages.map((msg, index) => (
+          <div key={index} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} mb-4 message-enter`}>
+            <div className={`p-4 rounded-2xl max-w-[85%] ${msg.type === 'user' ? 'user-message text-white' : 'bot-message text-gray-100'}`}
+                 style={{ position: 'relative', overflow: 'hidden' }}>
+              {msg.type === 'bot' && (
+                <button 
+                  onClick={() => speakText(msg.text, index)} 
+                  className="float-right ml-3 p-2 rounded-lg hover:bg-white/10 transition-all"
+                  style={{ marginTop: '-4px' }}
+                >
+                  <IoMdVolumeHigh size={20} className={isSpeaking === index ? 'text-purple-400' : 'text-gray-300'} />
+                </button>
+              )}
+              <div className="markdown-content">
+                <ReactMarkdown
+                  components={{
+                    code({ node, inline, className, children, ...props }) {
+                      return !inline ? (
+                        <div className="code-container my-3">
+                          <div className="code-header">
+                            <span className="text-xs text-purple-300 font-semibold">CODE</span>
+                            <button 
+                              onClick={() => {
+                                navigator.clipboard.writeText(children);
+                                toast.success('Copied to clipboard! ✨');
+                              }} 
+                              className="p-1.5 hover:bg-white/10 rounded-lg transition-all flex items-center gap-1.5 text-xs text-gray-300 hover:text-white"
+                            >
+                              <FaRegCopy size={14} />
+                              <span>Copy</span>
+                            </button>
+                          </div>
+                          <pre className="whitespace-pre-wrap p-4 text-sm font-mono text-green-200 overflow-x-auto">
+                            {children}
+                          </pre>
+                        </div>
+                      ) : (
+                        <code className="inline-code font-mono">{children}</code>
+                      );
+                    }
+                  }}
+                >
+                  {msg.text}
+                </ReactMarkdown>
+              </div>
+            </div>
+          </div>
         ))}
+        
         {loading && (
-          <div className="text-center text-gray-400 animate-pulse mt-4">Generating response...</div>
+          <div className="flex justify-start mb-4">
+            <div className="bot-message p-4 rounded-2xl">
+              <div className="loading-dots">
+                <div className="loading-dot"></div>
+                <div className="loading-dot"></div>
+                <div className="loading-dot"></div>
+              </div>
+            </div>
+          </div>
         )}
         <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      <div className="w-full max-w-3xl p-4 bg-gray-800">
-        <div className="flex space-x-2">
+      <div className="glass-input-container w-full flex-shrink-0 flex justify-center">
+        <div className="w-full max-w-4xl p-5">
+        <div className="flex gap-3 items-center">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            className="flex-1 p-3 rounded-lg bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-            placeholder="Type your message..."
+            className="modern-input flex-1 p-4 rounded-2xl text-white placeholder-gray-400 text-base"
+            placeholder="Type your message here..."
             disabled={isProcessing}
+            style={{ fontSize: '16px' }}
           />
           <button
             onClick={isProcessing ? stopResponse : getResponse}
-            className={`p-3 rounded-lg ${isProcessing ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+            className={`icon-button p-4 rounded-2xl ${isProcessing ? 'btn-stop' : 'btn-send'} text-white shadow-lg`}
+            title={isProcessing ? 'Stop' : 'Send'}
           >
-            {isProcessing ? <FaRegStopCircle size={20} /> : <FaArrowUp size={20} />}
+            {isProcessing ? <FaRegStopCircle size={22} /> : <FaArrowUp size={22} />}
           </button>
-          <button onClick={handleReason} className="p-3 bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg">Reason</button>
-          <button onClick={handleSearch} className="p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg">
-            <TbWorld size={20} />
+          <button 
+            onClick={handleReason} 
+            className="icon-button btn-reason p-4 rounded-2xl text-white shadow-lg hidden sm:block"
+            title="Get suggestions"
+          >
+            <span className="text-xl">💡</span>
           </button>
-          <button onClick={startVoiceInput} className="p-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg">
-            <HiMicrophone size={20} />
+          <button 
+            onClick={handleSearch} 
+            className="icon-button btn-search p-4 rounded-2xl text-white shadow-lg"
+            title="Search on Google"
+          >
+            <TbWorld size={22} />
           </button>
+          <button 
+            onClick={startVoiceInput} 
+            className="icon-button btn-voice p-4 rounded-2xl text-white shadow-lg"
+            title="Voice input"
+          >
+            <HiMicrophone size={22} />
+          </button>
+        </div>
         </div>
       </div>
     </div>
