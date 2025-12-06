@@ -112,7 +112,7 @@ function App() {
   };
 
   return (
-    <div className="app-container flex flex-col h-screen text-white">
+    <div className="app-container text-white">
       <Toaster position="top-center" toastOptions={{
         style: {
           background: 'rgba(0, 0, 0, 0.8)',
@@ -122,7 +122,7 @@ function App() {
         },
       }} />
       
-      <header className="glass-header flex justify-between items-center p-5 w-full flex-shrink-0">
+      <header className="glass-header flex justify-between items-center p-5 w-full">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
             <span className="text-2xl">🤖</span>
@@ -136,8 +136,8 @@ function App() {
         </div>
       </header>
 
-      <div className="flex-1 w-full overflow-y-auto flex justify-center" style={{ position: 'relative', zIndex: 10 }}>
-        <div className="w-full max-w-4xl p-6">
+      <div className="w-full flex justify-center" style={{ position: 'relative', zIndex: 10, flex: 1 }}>
+        <div className="w-full max-w-4xl p-6" style={{ paddingBottom: '20px' }}>
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-6 shadow-2xl animate-pulse">
@@ -227,7 +227,7 @@ function App() {
         </div>
       </div>
 
-      <div className="glass-input-container w-full flex-shrink-0 flex justify-center">
+      <div className="glass-input-container w-full flex justify-center">
         <div className="w-full max-w-4xl p-5">
         <div className="flex gap-3 items-center">
           <input

@@ -18,7 +18,11 @@ html, body, #root {
 .app-container {
   position: relative;
   background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  min-height: 100vh;
   overflow-x: hidden;
+  padding-bottom: 100px;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-container::before {
@@ -45,7 +49,8 @@ html, body, #root {
   background: rgba(255, 255, 255, 0.05);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 100;
 }
 
@@ -127,7 +132,10 @@ html, body, #root {
   background: rgba(255, 255, 255, 0.05);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 -8px 32px 0 rgba(31, 38, 135, 0.2);
-  position: relative;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
 }
 
@@ -270,5 +278,127 @@ html, body, #root {
 
 .markdown-content li {
   margin-bottom: 0.4em;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .app-container {
+    padding-bottom: 120px;
+  }
+
+  .glass-header {
+    padding: 12px 16px;
+  }
+
+  .glass-header h1 {
+    font-size: 20px;
+  }
+
+  .glass-header .w-10 {
+    width: 32px;
+    height: 32px;
+  }
+
+  .glass-header span.text-2xl {
+    font-size: 20px;
+  }
+
+  .glass-input-container {
+    padding: 12px 16px;
+  }
+
+  .glass-input-container > div {
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .modern-input {
+    font-size: 16px;
+    padding: 12px 16px;
+  }
+
+  .icon-button {
+    padding: 12px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-reason {
+    display: none;
+  }
+
+  .user-message, .bot-message {
+    max-width: 90%;
+    font-size: 14px;
+  }
+
+  .code-container {
+    font-size: 12px;
+  }
+
+  .markdown-content {
+    font-size: 14px;
+  }
+
+  .flex.gap-3 {
+    gap: 8px;
+  }
+
+  /* Make content area properly scrollable */
+  .w-full.max-w-4xl.p-6 {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-container {
+    padding-bottom: 130px;
+  }
+
+  .glass-header h1 {
+    font-size: 18px;
+  }
+
+  .glass-header .flex.items-center.gap-3 {
+    gap: 8px;
+  }
+
+  .modern-input {
+    padding: 10px 14px;
+    font-size: 16px;
+  }
+
+  .icon-button {
+    padding: 10px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .user-message, .bot-message {
+    max-width: 95%;
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .flex.gap-3 {
+    gap: 6px;
+  }
+
+  .glass-input-container .flex {
+    flex-wrap: nowrap;
+  }
+
+  .w-full.max-w-4xl.p-6 {
+    padding: 12px;
+  }
+
+  .glass-header .px-3 {
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 12px;
+  }
 }
   
