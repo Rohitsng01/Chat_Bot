@@ -40,6 +40,14 @@ function App() {
       toast.error('Please enter a message or wait for the previous response!');
       return;
     }
+    
+    if (!apiKey) {
+      toast.error('API Key is missing! Check your .env file.');
+      console.error('API Key not found in environment variables');
+      return;
+    }
+    
+    console.log('API Key loaded:', apiKey.substring(0, 10) + '...');
     setIsProcessing(true);
     setLoading(true);
     setMessages(prev => [...prev, { text: input, type: 'user' }]);
@@ -48,7 +56,7 @@ function App() {
     try {
       controllerRef.current = new AbortController();
       const res = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         {
           contents: [
             {
@@ -65,12 +73,31 @@ function App() {
 
       const responseText = res.data.candidates[0].content.parts[0].text;
       setMessages(prev => [...prev, { text: responseText, type: 'bot' }]);
-    } catch (err) {
-      const message = axios.isCancel(err)
-        ? 'Request canceled'
-        : 'Sorry, something went wrong. Please try again.';
-      setMessages(prev => [...prev, { text: message, type: 'bot' }]);
-    } finally {
+    }catch (err) {
+  console.error('API Error:', err.response?.data || err.message);
+  console.error('Full Error Object:', err);
+  console.error('Error Status:', err.response?.status);
+  console.error('Request URL:', err.config?.url);
+  console.error('Error Response Data:', JSON.stringify(err.response?.data, null, 2));
+  
+  let message = 'Sorry, something went wrong. Please try again.';
+  
+  if (axios.isCancel(err)) {
+    message = 'Request canceled';
+  } else if (err.response?.status === 400) {
+    message = 'Invalid API request: ' + (err.response?.data?.error?.message || 'Check API key');
+  } else if (err.response?.status === 403) {
+    message = 'API key is invalid or lacks permissions';
+  } else if (err.response?.status === 404) {
+    message = 'Model not found. The API endpoint may have changed.';
+  } else if (err.response?.status === 429) {
+    message = 'Rate limit exceeded. Try again later.';
+  } else if (err.response?.data?.error?.message) {
+    message = err.response.data.error.message;
+  }
+  
+  setMessages(prev => [...prev, { text: message, type: 'bot' }]);
+}finally {
       setLoading(false);
       setIsProcessing(false);
     }
